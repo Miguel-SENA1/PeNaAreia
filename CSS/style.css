@@ -1,0 +1,28 @@
+* {
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+}
+body {
+    width: 98vw;
+    height: 98vh;
+    display: flex;
+    justify-content: center; /* Alinha horizontalmente */
+    align-items: center;     /* Alinha verticalmente */
+    background-color: #f0f0f0; /* Apenas para visualização */
+}
+canvas {
+    display: block;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    /* Remove qualquer filtro de suavização do navegador */
+    transform: scale(2.3);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    margin-left: 20px;
+    margin-top: 20px;
+    border: 2px solid black;
+    border-radius: 1px;
+}

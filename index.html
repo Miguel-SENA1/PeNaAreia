@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pé na Areia</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <script src="JS/spritesheet.js"></script>
+    <script src="JS/animacao.js"></script>
+    <script src="JS/teclado.js"></script>
+    <script src="JS/personagem.js"></script>
+</head>
+<body>
+    <canvas id="canvas" width="640" height="192"></canvas>
+
+    <script>
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let jogoIniciado = false;
+
+    let teclado = new Teclado(document);
+    let animacao = new Animacao(ctx);
+    let personagem;
+
+    // Imagens principais
+    let cenarioImg = new Image();
+    cenarioImg.src = 'IMG/PRAIA.png';
+
+    let telaInicialImg = new Image();
+    telaInicialImg.src = 'IMG/INICIO.png';
+
+    // Cutscene
+    let cutsceneImg = new Image();
+    cutsceneImg.src = 'IMG/CUTSCENE.png';
+
+    // Sprites do personagem
+    let cariocaImgs = [
+        new Image(),
+        new Image(),
+        new Image(),
+        new Image()
+    ];
+    cariocaImgs[0].src = 'IMG/S1.png';
+    cariocaImgs[1].src = 'IMG/S2.png';
+    cariocaImgs[2].src = 'IMG/S3.png';
+    cariocaImgs[3].src = 'IMG/S4.png';
+
+    // Obstáculos
+    let obstaculoPularSheet = new Image();
+    obstaculoPularSheet.src = 'IMG/CASTELO.png';
+
+    let obstaculoRolarSheet = new Image();
+    obstaculoRolarSheet.src = 'IMG/PIPA.png';
+
+    // Fade
+    let fadeAlpha = 1;
+    let fadeSpeed = 0.05;
+    let isFading = false;
+
+    function mostrarTelaInicial() {
+        if (telaInicialImg.complete) {
+            if (!isFading) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (isFading) ctx.globalAlpha = fadeAlpha;
+
+            ctx.drawImage(telaInicialImg, 0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+
+            animacao.cenarioCurrentFrame = 0;
+            animacao.frameAtualObstaculo = 0;
+
+            if (!jogoIniciado && animacao.personagem) {
+                animacao.personagem.mudarEstado(PERSONAGEM_IDLE);
+            }
+
+            if (!jogoIniciado && !isFading) {
+                canvas.addEventListener('click', iniciarJogoAoClique, { once: true });
+            }
+        } else {
+            telaInicialImg.onload = mostrarTelaInicial;
+        }
+    }
+
+    function animarFade() {
+        if (fadeAlpha > 0) {
+            fadeAlpha -= fadeSpeed;
+            mostrarTelaInicial();
+            requestAnimationFrame(animarFade);
+        } else {
+            isFading = false;
+            fadeAlpha = 1;
+            exibirCutscene(); // 👉 agora exibe a cutscene após o fade
+        }
+    }
+
+    function iniciarJogoAoClique() {
+        jogoIniciado = true;
+        isFading = true;
+        animarFade();
+    }
+
+    function exibirCutscene() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
+
+        setTimeout(() => {
+            iniciarJogo();
+        }, 15000); // Espera 10 segundos
+    }
+
+    function verificarCarregamento() {
+        mostrarTelaInicial();
+
+        let imagensCarregadas = 0;
+        const totalImagens = cariocaImgs.length + 3; // obstáculos + cutscene
+
+        const verificar = () => {
+            imagensCarregadas++;
+            if (imagensCarregadas === totalImagens) {
+                console.log("Todos os recursos carregados.");
+            }
+        };
+
+        cariocaImgs.forEach(img => img.onload = verificar);
+        obstaculoPularSheet.onload = verificar;
+        obstaculoRolarSheet.onload = verificar;
+        cutsceneImg.onload = verificar;
+    }
+
+    verificarCarregamento();
+
+    function iniciarJogo() {
+        animacao.cenarioCurrentFrame = 0;
+        animacao.frameAtualObstaculo = 0;
+        animacao.ultimaMudancaFrame = Date.now();
+
+        personagem = new Carioca(ctx, teclado, cariocaImgs[0]);
+        animacao.personagem = personagem;
+        animacao.cariocaImgs = cariocaImgs;
+        animacao.obstaculoPularSheet = obstaculoPularSheet;
+        animacao.obstaculoRolarSheet = obstaculoRolarSheet;
+        animacao.novoSprite(personagem);
+        animacao.ligar();
+    }
+    </script>
+</body>
+</html>
